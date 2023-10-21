@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ritz-config>
+  <title>Test arnoldi</title>
+
+  <out-file>weak.txt</out-file>
+  
+  <verbose-level>2</verbose-level>
+
+  <!--matrix-file>../mm/psmigr_3.mtx</matrix-file-->
+  <matrix-colums>20</matrix-colums>
+  <matrix-lines>20</matrix-lines>
+
+  <arnoldi-size>5</arnoldi-size>
+  
+  <relative-error>1e-10</relative-error>
+  <max-iter>8000</max-iter>
+  
+  <benchmark>no</benchmark>
+  <measure-iter>10</measure-iter>
+
+</ritz-config>
