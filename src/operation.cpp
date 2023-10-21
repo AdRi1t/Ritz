@@ -11,10 +11,10 @@
 // y = A.v
 Mtx multVect(const Mtx &A, const Mtx &v)
 {
+  int comm_size = 0;
   int send_count = A.getUpper_id() - A.getLower_id() + 1 ;
   double* send_buf = new double[send_count]();
   double* recv_buf = new double[v.getNb_rows()];
-  int comm_size = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   int* nb_data_rank = new int[comm_size];
   int* shift = new int[comm_size];
@@ -176,4 +176,19 @@ Mtx multYaddV(const Mtx &A, const Mtx &y, const Mtx &v)
   return z;
 }
 
+std::complex<double> complexVectorMultiply(const std::complex<double>**Y, const Mtx& Vm)
+{
+  int n = Vm.getAllocatedSize();
+  std::complex<double> result = 0;
+  std::complex<double>* V_m = new std::complex<double>[n*n];
+  for (int i = 0; i < n; i++)
+  { 
+    for (int j = 0; j < n; j++)
+    {
+      V_m[i*n+j].real(Vm(i,j));
+    }
+  }
+  result = blas::dotu(n,V_m,1,*Y,1);
+  return result;
+}
 

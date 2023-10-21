@@ -5,7 +5,6 @@
 #include "../lib/lapackpp/include/lapack.hh"
 
 
-
 Mtx ArnoldiProjection(const Mtx &A, const Mtx &v_0, unsigned int m)
 {
   Mtx* v = new Mtx[m + 1];
@@ -91,4 +90,10 @@ void reductionArnoldi(const ArnoldiInput& input, ArnoldiOutput *out)
     out->h = h(j+1, 0);
   }
   return;
+}
+
+Mtx computeResiduals(double h_m, const Mtx& )
+{
+  Mtx residuals = Mtx(0,0);
+  return residuals;
 }

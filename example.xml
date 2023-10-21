@@ -7,8 +7,8 @@
   <verbose-level>2</verbose-level>
 
   <!--matrix-file>../mm/psmigr_3.mtx</matrix-file-->
-  <matrix-colums>20</matrix-colums>
-  <matrix-lines>20</matrix-lines>
+  <matrix-colums>10</matrix-colums>
+  <matrix-lines>10</matrix-lines>
 
   <arnoldi-size>5</arnoldi-size>
   

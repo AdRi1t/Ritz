@@ -27,44 +27,43 @@ int main(int argc, char *argv[])
   c = getConfig()->getNb_cols();
   m = getConfig()->getArnlodiDegree();
 
-  Mtx resultA9 = Mtx(l,1);
-  resultA9.fillResultA9(10, 100);
+  /*
+  Mtx resultA3 = Mtx(l,1);
+  resultA3.fillResultA3();
+  resultA3.printValue();
+  */
   
-  //mat_A.printValue();
-
   ArnoldiInput input;
   ArnoldiOutput output;
   std::complex<double>* eigenValues;
   std::complex<double>* eigenVectors;
+  std::complex<double>* Us;
   input.A = Mtx(l,c);
   input.v = Mtx(l,1);
-  input.A.fillRandom(10);
+  input.A.fillTestA3();
   input.v.fillRandom(42);
   input.m = m;
   input.n = l;
 
-  std::cout << __LINE__ << std::endl;
-
+  input.A.printValue();
   reductionArnoldi(input, &output);
   
-    std::cout << __LINE__ << std::endl;
 
   computeEigen(output.H, &eigenValues, &eigenVectors);
+  
+  //output.H.printValue();
+  //output.V.printValue();
   sortEigenValue(&eigenValues,&eigenVectors,m);
-    std::cout << __LINE__ << std::endl;
-  output.H.printValue();
-  output.V.printValue();
-  for (size_t i = 0; i < input.m; i++)
-  {
-    std::cout << "Valeurs propre " << eigenValues[i] << "\n";
-    for (size_t j = 0; j < input.m; j++)
-    {
-     // std::cout << eigenVectors[i * input.m + j] << " "; 
-    }
-    std::cout << "\n" ;
-  }
+  printEigenValue(eigenValues,input.m);
+  printEigenVectors(eigenVectors, input.m);
+   std::cout << __LINE__ << std::endl;
+  Us = computeUs(&eigenVectors , output.V);
+   std::cout << __LINE__ << std::endl;
   // output.v_m = scaleV(output.h, output.v_m);
   //output.v_m.printValue();
+   std::cout << __LINE__ << std::endl;
+  printEigenValue(Us, input.m);
+   std::cout << __LINE__ << std::endl;
   plf::millisecond_delay(100);
 
   MPI_Finalize();
