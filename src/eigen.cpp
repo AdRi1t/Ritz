@@ -151,27 +151,28 @@ void printEigenVectors(const std::complex<double> *eigenVectors, int n)
   { 
     for (size_t j = 0; j < n; j++)
     {
-       std::cout << eigenVectors[i*n+j] << " | " ;
+      std::cout << eigenVectors[i*n+j] << " | " ;
     }
     std::cout << "\n" ;
   }
 }
 
-std::complex<double>* computeUs(std::complex<double> **Y , const Mtx& Vm)
+void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **U)
 {
   int n = Vm.getNb_rows();
+  int m = Vm.getNb_cols();
   int comm_size = 0;
   int comm_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-  std::complex<double>* V_m = new std::complex<double>[n*n];
+  std::complex<double>* V_m = new std::complex<double>[n*m];
 
   int nb_own_values  = Vm.getAllocatedSize();
   double* own_buffer = new double[nb_own_values];
   int k = 0;
   for (unsigned int i = Vm.getLower_id(); i <= Vm.getUpper_id(); i++)
   {
-    for (unsigned int j = 0; j < n; j++)
+    for (unsigned int j = 0; j < m; j++)
     {
       own_buffer[k] = Vm(i,j); 
       V_m[i*n+j].real(own_buffer[k]);
@@ -213,7 +214,7 @@ std::complex<double>* computeUs(std::complex<double> **Y , const Mtx& Vm)
       k = 0;
       for (unsigned int l = lower_id; l <= upper_id; l++)
       {
-        for (unsigned int c = 0; c < n; c++)
+        for (unsigned int c = 0; c < m; c++)
         {
           V_m[l*n+c].real(tmp_buffer[k]);
           V_m[l*n+c].imag(0);
@@ -224,20 +225,21 @@ std::complex<double>* computeUs(std::complex<double> **Y , const Mtx& Vm)
     delete[] tmp_buffer;
   }
   delete[] own_buffer;
-  std::complex<double>* U = new std::complex<double>[n];
-  for (int i = 0; i < n; i++)
-  {
-    std::complex<double>* tmp_V = new std::complex<double>[n];
-    std::complex<double>* tmp_Y = new std::complex<double>[n];
-    for (int j = 0; j < n; j++)
+  std::cout << __LINE__ << std::endl;
+  *U = new std::complex<double>[n*m];
+  std::cout << __LINE__ << std::endl;
+  std::complex<double> alpha(1.0 , 0.0);
+  std::complex<double> beta(0.0 , 0.0);
+     std::cout << __LINE__ << std::endl;
+  blas::gemm(blas::Layout::RowMajor, blas::Op::NoTrans, blas::Op::NoTrans, n, m, m, alpha, V_m, n,*Y, m, beta, *U, m);
+  for (size_t i = 0; i < n; i++)
+  { 
+    for (size_t j = 0; j < m; j++)
     {
-      tmp_V[j] = V_m[i*n+j];
-      tmp_Y[j] = (*Y)[i*n+j];
+      std::cout << (*U)[i*m+j] << " | " ;
     }
-    U[i] = blas::dotu(n,tmp_Y,1,tmp_V,1);
-    delete[] tmp_V;
-    delete[] tmp_Y;
+    std::cout << "\n" ;
   }
   delete[] V_m;
-  return U;
+  return;
 }

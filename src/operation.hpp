@@ -36,5 +36,5 @@ void printEigenValue(const std::complex<double> *eigenValues, int n);
 
 void printEigenVectors(const std::complex<double> *eigenVectors, int n);
 
-std::complex<double>* computeUs(std::complex<double> **Y , const Mtx& Vm);
+void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **U);
 

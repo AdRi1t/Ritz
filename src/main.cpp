@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
   input.A.printValue();
   reductionArnoldi(input, &output);
   
-
   computeEigen(output.H, &eigenValues, &eigenVectors);
   
   //output.H.printValue();
@@ -57,17 +56,22 @@ int main(int argc, char *argv[])
   printEigenValue(eigenValues,input.m);
   printEigenVectors(eigenVectors, input.m);
    std::cout << __LINE__ << std::endl;
-  Us = computeUs(&eigenVectors , output.V);
+  computeUs(&eigenVectors, output.V, &Us);
    std::cout << __LINE__ << std::endl;
   // output.v_m = scaleV(output.h, output.v_m);
   //output.v_m.printValue();
    std::cout << __LINE__ << std::endl;
-  printEigenValue(Us, input.m);
+  //printEigenVectors(Us, input.m);
    std::cout << __LINE__ << std::endl;
-  plf::millisecond_delay(100);
-
+  delete[] eigenValues;
+  delete[] eigenVectors;
+  delete[] Us;
+  
+  std::cout << __LINE__ << std::endl;
+  
   MPI_Finalize();
   
+  plf::millisecond_delay(100);
   return 0;
 }
 
