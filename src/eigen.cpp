@@ -21,8 +21,8 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   std::complex<double>* A = new std::complex<double>[n*n];
-  std::complex<double>* VR = new std::complex<double>[n*n];
-  std::complex<double>* W = new std::complex<double>[n];
+  *eigenVectors = new std::complex<double>[n*n];
+  *eigenValue = new std::complex<double>[n];
 
   int nb_own_values  = H.getAllocatedSize();
   double* own_buffer = new double[nb_own_values];
@@ -84,13 +84,12 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
   delete[] own_buffer;
 
   int return_code = 0;
-  return_code = lapack::geev(lapack::Job::NoVec, lapack::Job::Vec, n, A, n, W, nullptr, 1, VR, n);
+  return_code = lapack::geev(lapack::Job::NoVec, lapack::Job::Vec, n, A, n, *eigenValue, nullptr, 1, *eigenVectors, n);
   if (return_code != 0)
   {
     std::cerr << "[Lapack] QR algorithm failed to compute all the eigenvalues \n"; 
   }
-  *eigenValue = W;
-  *eigenVectors = VR;
+  delete[] A;
   return;
 }
 
@@ -129,7 +128,7 @@ void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** ei
   { 
     for (size_t j = 0; j < n; j++)
     {
-      (*eigenVectors)[index[i]*n+j] = tmp_Vectors[i*n +j];
+      (*eigenVectors)[i*n+j] = tmp_Vectors[index[i]*n + j];
     }
   }
   delete[] index;
@@ -157,6 +156,19 @@ void printEigenVectors(const std::complex<double> *eigenVectors, int n)
   }
 }
 
+void printEigenVectors(const std::complex<double> *eigenVectors, int n, int m)
+{
+  for (size_t i = 0; i < n; i++)
+  { 
+    for (size_t j = 0; j < m; j++)
+    {
+      std::cout << eigenVectors[i*m+j] << " | " ;
+    }
+    std::cout << "\n" ;
+  }
+}
+
+
 void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **U)
 {
   int n = Vm.getNb_rows();
@@ -166,7 +178,8 @@ void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   std::complex<double>* V_m = new std::complex<double>[n*m];
-
+  *U = new std::complex<double>[n*m];
+  
   int nb_own_values  = Vm.getAllocatedSize();
   double* own_buffer = new double[nb_own_values];
   int k = 0;
@@ -175,8 +188,8 @@ void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **
     for (unsigned int j = 0; j < m; j++)
     {
       own_buffer[k] = Vm(i,j); 
-      V_m[i*n+j].real(own_buffer[k]);
-      V_m[i*n+j].imag(0);
+      V_m[i*m+j].real(own_buffer[k]);
+      V_m[i*m+j].imag(0);
       k++;
     }
   }
@@ -216,8 +229,8 @@ void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **
       {
         for (unsigned int c = 0; c < m; c++)
         {
-          V_m[l*n+c].real(tmp_buffer[k]);
-          V_m[l*n+c].imag(0);
+          V_m[l*m+c].real(tmp_buffer[k]);
+          V_m[l*m+c].imag(0);
           k++;
         }
       }
@@ -225,21 +238,11 @@ void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **
     delete[] tmp_buffer;
   }
   delete[] own_buffer;
-  std::cout << __LINE__ << std::endl;
-  *U = new std::complex<double>[n*m];
-  std::cout << __LINE__ << std::endl;
+
   std::complex<double> alpha(1.0 , 0.0);
   std::complex<double> beta(0.0 , 0.0);
-     std::cout << __LINE__ << std::endl;
-  blas::gemm(blas::Layout::RowMajor, blas::Op::NoTrans, blas::Op::NoTrans, n, m, m, alpha, V_m, n,*Y, m, beta, *U, m);
-  for (size_t i = 0; i < n; i++)
-  { 
-    for (size_t j = 0; j < m; j++)
-    {
-      std::cout << (*U)[i*m+j] << " | " ;
-    }
-    std::cout << "\n" ;
-  }
+  blas::gemm(blas::Layout::RowMajor, blas::Op::NoTrans, blas::Op::NoTrans, n, m, m, alpha, V_m, m,*Y, m, beta, *U, m);
+
   delete[] V_m;
   return;
 }

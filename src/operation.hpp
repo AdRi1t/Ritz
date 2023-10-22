@@ -35,6 +35,7 @@ void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** ei
 void printEigenValue(const std::complex<double> *eigenValues, int n);
 
 void printEigenVectors(const std::complex<double> *eigenVectors, int n);
+void printEigenVectors(const std::complex<double> *eigenVectors, int n, int m);
 
 void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **U);
 

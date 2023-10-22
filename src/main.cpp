@@ -27,11 +27,11 @@ int main(int argc, char *argv[])
   c = getConfig()->getNb_cols();
   m = getConfig()->getArnlodiDegree();
 
-  /*
+  
   Mtx resultA3 = Mtx(l,1);
-  resultA3.fillResultA3();
+  resultA3.fillResultA9(10,20);
   resultA3.printValue();
-  */
+  
   
   ArnoldiInput input;
   ArnoldiOutput output;
@@ -40,29 +40,32 @@ int main(int argc, char *argv[])
   std::complex<double>* Us;
   input.A = Mtx(l,c);
   input.v = Mtx(l,1);
-  input.A.fillTestA3();
+  input.A.fillTestA9(10,20);
   input.v.fillRandom(42);
   input.m = m;
   input.n = l;
 
-  input.A.printValue();
+  //input.A.printValue();
+  
   reductionArnoldi(input, &output);
   
   computeEigen(output.H, &eigenValues, &eigenVectors);
-  
+
   //output.H.printValue();
   //output.V.printValue();
-  sortEigenValue(&eigenValues,&eigenVectors,m);
+  
+  sortEigenValue(&eigenValues,&eigenVectors, m);
   printEigenValue(eigenValues,input.m);
   printEigenVectors(eigenVectors, input.m);
-   std::cout << __LINE__ << std::endl;
+  std::cout << __LINE__ << std::endl;
   computeUs(&eigenVectors, output.V, &Us);
-   std::cout << __LINE__ << std::endl;
+  std::cout << __LINE__ << std::endl;
+  printEigenVectors(Us,input.n, input.m);
+
   // output.v_m = scaleV(output.h, output.v_m);
   //output.v_m.printValue();
-   std::cout << __LINE__ << std::endl;
-  //printEigenVectors(Us, input.m);
-   std::cout << __LINE__ << std::endl;
+
+
   delete[] eigenValues;
   delete[] eigenVectors;
   delete[] Us;
