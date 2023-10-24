@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string>
 #include <unistd.h>
+#include <regex>
+#include <filesystem>
 #include "../lib/tinyxml2/tinyxml2.h"
 #include "configuration.hpp"
 
@@ -13,6 +15,8 @@ Configuration::Configuration()
   make_benchmark = false;
   matrix_source_file = false;
   verbose_level = 0;
+  matrix_nb_lines = 0;
+  matrix_nb_cols = 0;
   max_iter = 100;
   measure_iter = 10;
   relative_error = 1e-10;
@@ -23,10 +27,8 @@ Configuration::Configuration()
 
 Configuration::~Configuration() { }
 
-Configuration* getConfig() { return &configuration; }
 
-
-void parseCommand(int argc, char* argv[])
+void Configuration::parseCommand(int argc, char* argv[])
 {
   extern char* optarg;
   int opt;
@@ -39,7 +41,7 @@ void parseCommand(int argc, char* argv[])
   {
     try
     {
-      getConfig()->parseFile(argv[1]);
+      this->parseFile(argv[1]);
     }
     catch(const std::exception& e)
     {
@@ -56,29 +58,29 @@ void parseCommand(int argc, char* argv[])
         exit(0);
         break;
       case 'l':
-        getConfig()->matrix_nb_lines = atoi(std::string(optarg).c_str());
+        this->matrix_nb_lines = atoi(optarg);
         break;
       case 'c':
-        getConfig()->matrix_nb_cols = atoi(std::string(optarg).c_str());
+        this->matrix_nb_cols = atoi(optarg);
         break;
       case 'd':
-        getConfig()->dump_enable = true;
+        this->dump_enable = true;
         break;
       case 'm':
-        getConfig()->arnoldi_degree = atoi(std::string(optarg).c_str());
+        this->arnoldi_degree = atoi(optarg);
         break;
       case 'i':
-        getConfig()->max_iter = atoi(std::string(optarg).c_str());
+        this->max_iter = atoi(optarg);
         break;
       case 'e':
-        getConfig()->relative_error = atof(std::string(optarg).c_str());
+        this->relative_error = atof(optarg);
         break;
       case 'r':
-        getConfig()->make_benchmark = true;
+        this->make_benchmark = true;
         break;
       case 'f':
-        getConfig()->matrix_source_file = true;
-        getConfig()->matrix_file_name.assign(optarg);
+        this->matrix_source_file = true;
+        this->matrix_file_name.assign(optarg);
         break;
     }
   }
@@ -92,31 +94,30 @@ void Configuration::parseFile(std::string file_name)
   error = xml_document.LoadFile(file_name.c_str());
   if(error != tinyxml2::XML_SUCCESS)
   {
-    std::cerr << "No file to parse" << std::endl;
+    std::cout << "No file to parse" << std::endl;
     return;
   }
-  tinyxml2::XMLElement* out_file_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_OUT_FILE);
-  tinyxml2::XMLElement* title_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_TITLE);
-  tinyxml2::XMLElement* matrix_file_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_MATRIX_FILE);
-  tinyxml2::XMLElement* nb_lines_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_NB_LINES);
-  tinyxml2::XMLElement* nb_cols_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_NB_COLS);
-  tinyxml2::XMLElement* max_iter_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_MAX_ITER);
-  tinyxml2::XMLElement* arnoldi_size_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_ARNOLDI_SIZE);
-  tinyxml2::XMLElement* relative_error_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_RELATIVE_ERROR);
-  tinyxml2::XMLElement* make_benchmark_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_BENCHMARK);
-  tinyxml2::XMLElement* measure_iter_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_MEASURE_ITER);
-  tinyxml2::XMLElement* verbose_element =
-      xml_document.FirstChildElement(TAG_BASE)->FirstChildElement(TAG_VERBOSE_LEVEL);
+  
+  tinyxml2::XMLElement* BASE_element =  xml_document.FirstChildElement(TAG_BASE);
+  
+  if(BASE_element == nullptr)
+  {
+    std::string error("Missing root tag in XML FILE : ");
+    error.append(TAG_BASE);
+    throw std::runtime_error(error);
+  }
+
+  tinyxml2::XMLElement* out_file_element = BASE_element->FirstChildElement(TAG_OUT_FILE);
+  tinyxml2::XMLElement* title_element = BASE_element->FirstChildElement(TAG_TITLE);
+  tinyxml2::XMLElement* matrix_file_element = BASE_element->FirstChildElement(TAG_MATRIX_FILE);
+  tinyxml2::XMLElement* nb_lines_element = BASE_element->FirstChildElement(TAG_NB_LINES);
+  tinyxml2::XMLElement* nb_cols_element = BASE_element->FirstChildElement(TAG_NB_COLS);
+  tinyxml2::XMLElement* max_iter_element = BASE_element->FirstChildElement(TAG_MAX_ITER);
+  tinyxml2::XMLElement* arnoldi_size_element = BASE_element->FirstChildElement(TAG_ARNOLDI_SIZE);
+  tinyxml2::XMLElement* relative_error_element = BASE_element->FirstChildElement(TAG_RELATIVE_ERROR);
+  tinyxml2::XMLElement* make_benchmark_element = BASE_element->FirstChildElement(TAG_BENCHMARK);
+  tinyxml2::XMLElement* measure_iter_element = BASE_element->FirstChildElement(TAG_MEASURE_ITER);
+  tinyxml2::XMLElement* verbose_element = BASE_element->FirstChildElement(TAG_VERBOSE_LEVEL);
 
   //checkPath();
   if(out_file_element != nullptr)
@@ -247,6 +248,18 @@ bool Configuration::configIsOK()
   {
     std::cerr << "\nBad verbose level must be 0,1 or 2\n";
     return false;
+  }
+  auto WorkingDir = std::filesystem::current_path();
+  auto resultDir = WorkingDir.append("result");
+  if(!std::filesystem::is_directory(resultDir))
+  {
+    std::filesystem::create_directory(resultDir);
+  }
+
+  const std::regex txt_regex("result/.*");
+  if(std::regex_match(data_file, txt_regex) == false)
+  {
+    data_file = std::string("result/" + data_file);
   }
   return true;
 }

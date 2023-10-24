@@ -16,6 +16,7 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
   }
 
   int n = H.getNb_rows();
+  int m = H.getNb_cols();
   int comm_size = 0;
   int comm_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
@@ -29,11 +30,11 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
   int k = 0;
   for (unsigned int i = H.getLower_id(); i <= H.getUpper_id(); i++)
   {
-    for (unsigned int j = 0; j < n; j++)
+    for (unsigned int j = 0; j < m; j++)
     {
       own_buffer[k] = H(i,j); 
-      A[i*n+j].real(own_buffer[k]);
-      A[i*n+j].imag(0);
+      A[i*m+j].real(own_buffer[k]);
+      A[i*m+j].imag(0);
       k++;
     }
   }
@@ -71,10 +72,10 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
       k = 0;
       for (unsigned int l = lower_id; l <= upper_id; l++)
       {
-        for (unsigned int c = 0; c < n; c++)
+        for (unsigned int c = 0; c < m; c++)
         {
-          A[l*n+c].real(tmp_buffer[k]);
-          A[l*n+c].imag(0);
+          A[l*m+c].real(tmp_buffer[k]);
+          A[l*m+c].imag(0);
           k++;
         }
       }

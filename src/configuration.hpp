@@ -40,7 +40,7 @@ public:
   ~Configuration();
   bool configIsOK();
   void printConfig();
-  friend void parseCommand(int argc, char* argv[]);
+  void parseCommand(int argc, char* argv[]);
   bool getMake_benchmark() const;
   bool haveMtxFile() const;
   double getRelative_error() const;
@@ -55,9 +55,4 @@ public:
 };
 
 void printUsage();
-
-static Configuration configuration;
-Configuration* getConfig();
-
-void parseCommand(int argc, char* argv[]);
 

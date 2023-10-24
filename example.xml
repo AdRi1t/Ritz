@@ -2,15 +2,15 @@
 <ritz-config>
   <title>Test arnoldi</title>
 
-  <out-file>weak.txt</out-file>
+  <out-file>time.txt</out-file>
   
   <verbose-level>2</verbose-level>
 
   <!--matrix-file>../mm/psmigr_3.mtx</matrix-file-->
-  <matrix-colums>6</matrix-colums>
-  <matrix-lines>6</matrix-lines>
+  <matrix-colums>5000</matrix-colums>
+  <matrix-lines>5000</matrix-lines>
 
-  <arnoldi-size>4</arnoldi-size>
+  <arnoldi-size>40</arnoldi-size>
   
   <relative-error>1e-10</relative-error>
   <max-iter>8000</max-iter>
