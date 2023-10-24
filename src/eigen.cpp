@@ -23,7 +23,7 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   std::complex<double>* A = new std::complex<double>[n*n];
   *eigenVectors = new std::complex<double>[n*n];
-  *eigenValue = new std::complex<double>[n];
+  *eigenValue = new std::complex<double>[m];
 
   int nb_own_values  = H.getAllocatedSize();
   double* own_buffer = new double[nb_own_values];

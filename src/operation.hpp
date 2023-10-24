@@ -39,3 +39,4 @@ void printEigenVectors(const std::complex<double> *eigenVectors, int n, int m);
 
 void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **U);
 
+Mtx computeResiduals(const Mtx& mtx_A, std::complex<double> **eigenValues, std::complex<double> **eigenVectors, int s, int m);

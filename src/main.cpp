@@ -36,12 +36,13 @@ int main(int argc, char *argv[])
   std::complex<double>* Us;
 
   Mtx resultA3 = Mtx(l,1);
+  Mtx residuals;
   resultA3.fillResultA9(10,20);
   //resultA3.printValue();
 
   input.A = Mtx(l,c);
   input.v = Mtx(l,1);
-  input.A.fillTestA9(10,20);
+  input.A.fillTestA3();
   input.v.fillRandom(42);
   input.m = m;
   input.n = l;
@@ -75,8 +76,20 @@ int main(int argc, char *argv[])
   t = (t2 - t1);
   b_stats.add_data("Us", "ms",&t,input.m,1); 
 
+  residuals = computeResiduals(input.A, &eigenValues, &eigenVectors, input.m, input.m);
   // output.v_m = scaleV(output.h, output.v_m);
-
+  
+  /*
+  output.H.printValue();
+  output.V.printValue();
+  residuals.printValue();
+  printEigenVectors(Us, input.n,input.m);
+  std::cout << "h_m : " << output.h << "\n";
+  printEigenValue(eigenValues, input.m);
+    std::cout << "h_m : " << output.h << "\n";
+  printEigenVectors(eigenVectors,input.m);
+  */
+  
   b_stats.writeAll(config.getBench_file_name());
 
   delete[] eigenValues;

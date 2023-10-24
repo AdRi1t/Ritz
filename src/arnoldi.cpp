@@ -1,3 +1,4 @@
+#include <mpi.h>
 #include "mat.hpp"
 #include "arnoldiEnv.h"
 #include "operation.hpp"
@@ -52,7 +53,7 @@ void reductionArnoldi(const ArnoldiInput& input, ArnoldiOutput *out)
   Mtx* v = new Mtx[input.m + 1];
   out->V = Mtx(input.n, input.m);
   out->H = Mtx(input.m , input.m);
-  out->v_m = Mtx(input.n,1);
+  out->v_m = Mtx(input.n, 1);
 
   v[0] = scaleV(1.0/norm(input.v), input.v);
 
@@ -92,8 +93,87 @@ void reductionArnoldi(const ArnoldiInput& input, ArnoldiOutput *out)
   return;
 }
 
-Mtx computeResiduals(double h_m, const Mtx& )
+Mtx computeResiduals(const Mtx& mtx_A, std::complex<double> **eigenValues, std::complex<double> **eigenVectors, int s, int m)
 {
-  Mtx residuals = Mtx(0,0);
+  assert(s > 0);
+  assert(m >= s);
+  int n = mtx_A.getNb_rows();
+  int comm_size = 0;
+  int comm_rank = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+
+  Mtx residuals = Mtx(s, 1);
+  std::complex<double>* A = new std::complex<double>[n*n];
+
+  int nb_own_values  = mtx_A.getAllocatedSize();
+  double* own_buffer = new double[nb_own_values];
+  int k = 0;
+  for (unsigned int i = mtx_A.getLower_id(); i <= mtx_A.getUpper_id(); i++)
+  {
+    for (unsigned int j = 0; j < n; j++)
+    {
+      own_buffer[k] = mtx_A(i,j); 
+      A[i*n+j].real(own_buffer[k]);
+      A[i*n+j].imag(0);
+      k++;
+    }
+  }
+  for (int i = 0; i < comm_size; i++)
+  {
+    int tmp_nb_values = 0;
+    double* tmp_buffer = nullptr;
+    int upper_id = 0;
+    int lower_id = 0;
+    if(comm_rank == i)
+    {
+      tmp_nb_values = nb_own_values;
+      MPI_Bcast(&tmp_nb_values, 1, MPI_INT, i ,MPI_COMM_WORLD);
+      tmp_buffer = new double[tmp_nb_values];
+      MPI_Bcast(own_buffer, tmp_nb_values, MPI_DOUBLE, i ,MPI_COMM_WORLD);
+    }
+    else
+    {
+      MPI_Bcast(&tmp_nb_values, 1, MPI_INT, i ,MPI_COMM_WORLD);
+      tmp_buffer = new double[tmp_nb_values];
+      MPI_Bcast(tmp_buffer, tmp_nb_values, MPI_DOUBLE, i ,MPI_COMM_WORLD);
+    }
+    if(i == 0)
+    {
+      lower_id = 0;
+      upper_id = mtx_A.getUpperRank(i);
+    }
+    else
+    {
+      lower_id = mtx_A.getUpperRank(i-1);
+      upper_id = mtx_A.getUpperRank(i);
+    }
+    if(i != comm_rank)
+    {
+      k = 0;
+      for (unsigned int l = lower_id; l <= upper_id; l++)
+      {
+        for (unsigned int c = 0; c < n; c++)
+        {
+          A[l*n+c].real(tmp_buffer[k]);
+          A[l*n+c].imag(0);
+          k++;
+        }
+      }
+    }
+    delete[] tmp_buffer;
+  }
+  delete[] own_buffer;
+  std::complex<double> alpha(1.0 , 0.0);
+  for (int i = 0; i < s; i++)
+  {
+    std::complex<double> beta = -(*eigenValues)[i];
+    std::complex<double>* vector = new std::complex<double>[m];
+    blas::copy(m, &((*eigenVectors)[i]), m, vector, 1);
+    blas::gemv(blas::Layout::RowMajor, blas::Op::NoTrans, n, m, alpha, A, m, vector, 1, beta, vector, 1);
+    residuals(i,0) = blas::nrm2(m, vector, 1);
+    delete[] vector;
+  }
+  delete[] A;
   return residuals;
 }
