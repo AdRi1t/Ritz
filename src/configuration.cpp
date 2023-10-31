@@ -123,16 +123,6 @@ void Configuration::parseFile(std::string file_name)
   if(out_file_element != nullptr)
   {
     data_file = std::string(out_file_element->GetText());
-    const char* file_name = out_file_element->GetText();
-    FILE* test = fopen(file_name, "a");
-    if(test == NULL)
-    {
-      std::cerr << "Ne peut pas ouvrir de fichier de sortie" << "\n";
-    }
-    else
-    {
-      fclose(test);
-    }
   }
   else
   {
