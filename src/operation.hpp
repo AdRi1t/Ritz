@@ -30,13 +30,19 @@ void reductionArnoldi(const ArnoldiInput& input, ArnoldiOutput *out);
 
 void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<double>** eigenVectors);
 
-void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** eigenVectors, int n);
+void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** eigenVectors, int n, int s);
 
 void printEigenValue(const std::complex<double> *eigenValues, int n);
 
 void printEigenVectors(const std::complex<double> *eigenVectors, int n);
 void printEigenVectors(const std::complex<double> *eigenVectors, int n, int m);
 
-void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **U);
+void computeUs(std::complex<double> **Y , const Mtx& Vm, std::complex<double> **U, int s);
 
 Mtx computeResiduals(const Mtx& mtx_A, std::complex<double> **eigenValues, std::complex<double> **eigenVectors, int s, int m);
+
+Mtx computeResiduals2(double hm1, std::complex<double> **eigenVectors, int m, int s);
+
+double summVect(const Mtx& vect);
+
+Mtx newV(std::complex<double> **EigenVectors, int n, int s);

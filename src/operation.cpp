@@ -24,6 +24,7 @@ Mtx multVect(const Mtx &A, const Mtx &v)
   for (unsigned int i = A.getLower_id(); i <= A.getUpper_id(); i++)
   {
     unsigned int index_send_buf = i - A.getLower_id();
+    send_buf[index_send_buf] = 0;
     for (unsigned int j = 0; j < nb_cols; j++)
     {
       send_buf[index_send_buf] += A(i,j) * v(j, (unsigned int) 0); 
@@ -82,12 +83,9 @@ double dotProduct(const Mtx &x, const Mtx &y)
     return k; 
   }
   int n = x.getAllocatedSize();
-  #pragma omp parallel for num_threads(2) reduction(+:k) 
+  for (int i = 0; i < n; i++)
   {
-    for (int i = 0; i < n; i++)
-    {
       k += x(i,0) * y(i,0);
-    }
   }
   return k;
 }
@@ -191,4 +189,16 @@ std::complex<double> complexVectorMultiply(const std::complex<double>**Y, const 
   result = blas::dotu(n,V_m,1,*Y,1);
   return result;
 }
+
+double summVect(const Mtx& vect)
+{
+  double summ = 0.0;
+  int n = vect.getNb_rows();
+  for (int i = 0; i < n; i++)
+  {
+    summ += vect(i,0);
+  }
+  return summ;
+}
+
 

@@ -1,4 +1,5 @@
 #include <mpi.h>
+#include <iostream>
 #include "mat.hpp"
 #include "arnoldiEnv.h"
 #include "operation.hpp"
@@ -68,7 +69,7 @@ void reductionArnoldi(const ArnoldiInput& input, ArnoldiOutput *out)
       v[j+1] = addVect(v[j+1], tmp);
     }
     h(j+1, 0) = norm(v[j+1]);
-    v[j+1] = scaleV(1.0/h(j+1, 0), v[j+1]);
+    v[j+1] = scaleV((1.0/h(j+1, 0)), v[j+1]);
     if(h(j+1,0) == 0.0)
     {
       break;
@@ -87,8 +88,8 @@ void reductionArnoldi(const ArnoldiInput& input, ArnoldiOutput *out)
         out->V(i,j) = v[j](i,0); 
       }
     }
-    out->v_m = v[j+1];
-    out->h = h(j+1, 0);
+    out->v_m = v[input.m];
+    out->h = h(input.m, 0);
   }
   return;
 }
@@ -168,12 +169,55 @@ Mtx computeResiduals(const Mtx& mtx_A, std::complex<double> **eigenValues, std::
   for (int i = 0; i < s; i++)
   {
     std::complex<double> beta = -(*eigenValues)[i];
-    std::complex<double>* vector = new std::complex<double>[m];
-    blas::copy(m, &((*eigenVectors)[i]), m, vector, 1);
-    blas::gemv(blas::Layout::RowMajor, blas::Op::NoTrans, n, m, alpha, A, m, vector, 1, beta, vector, 1);
-    residuals(i,0) = blas::nrm2(m, vector, 1);
+    std::complex<double>* vector = new std::complex<double>[n];
+    blas::copy(n, &((*eigenVectors)[i]), s, vector, 1);
+    blas::gemv(blas::Layout::RowMajor, blas::Op::NoTrans, n, n, alpha, A, n, vector, 1, beta, vector, 1);
+    residuals(i,0) = blas::nrm2(n, vector, 1);
     delete[] vector;
   }
   delete[] A;
   return residuals;
 }
+
+Mtx computeResiduals2(double hm1, std::complex<double> **eigenVectors, int m, int s)
+{
+  Mtx residuals = Mtx(s,1);
+  for(int i = 0 ; i < s ; i++)
+  {
+    residuals(i,0) = hm1 * abs((*eigenVectors)[m*(s-1) + i].real());
+  }
+  return residuals;
+}
+
+Mtx newV(std::complex<double> **EigenVectors, int n, int s)
+{
+  Mtx v = Mtx(n,1);
+  double* norm = new double[s];
+  for(int j = 0; j < s; j++)
+  {
+    norm[j] = 0.0;
+    for(int i = 0; i < n; i++)
+    {
+      norm[j] += pow(std::norm((*EigenVectors)[i*s+j]),2);
+    }
+    norm[j] = sqrt(norm[j]);
+  }
+  
+  for(int i = 0; i < n; i++)
+  {
+    v(i,0) = 0;
+    for(int j = 0; j < s; j++)
+    {
+      v(i,0) +=  (*EigenVectors)[i*s+j].real();
+    }
+  } 
+  /*
+  for(int i = 0; i < n; i++)
+  {
+    v(i,0) = (*EigenVectors)[i*s].real();
+  }
+  */
+  delete[] norm;
+  return v;
+}
+

@@ -9,6 +9,7 @@ struct ArnoldiInput
   Mtx v;
   int n;
   int m;
+  int s;
 };
 
 struct ArnoldiOutput
