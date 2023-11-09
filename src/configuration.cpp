@@ -17,8 +17,10 @@ Configuration::Configuration()
   verbose_level = 0;
   matrix_nb_lines = 0;
   matrix_nb_cols = 0;
+  arnoldi_degree = 0;
+  nb_eigen = 0;
   max_iter = 100;
-  measure_iter = 10;
+  measure_iter = 30;
   relative_error = 1e-10;
   matrix_file_name = std::string();
   title = std::string();
@@ -114,6 +116,7 @@ void Configuration::parseFile(std::string file_name)
   tinyxml2::XMLElement* nb_cols_element = BASE_element->FirstChildElement(TAG_NB_COLS);
   tinyxml2::XMLElement* max_iter_element = BASE_element->FirstChildElement(TAG_MAX_ITER);
   tinyxml2::XMLElement* arnoldi_size_element = BASE_element->FirstChildElement(TAG_ARNOLDI_SIZE);
+  tinyxml2::XMLElement* nb_eigen_element = BASE_element->FirstChildElement(TAG_NB_EIGEN);
   tinyxml2::XMLElement* relative_error_element = BASE_element->FirstChildElement(TAG_RELATIVE_ERROR);
   tinyxml2::XMLElement* make_benchmark_element = BASE_element->FirstChildElement(TAG_BENCHMARK);
   tinyxml2::XMLElement* measure_iter_element = BASE_element->FirstChildElement(TAG_MEASURE_ITER);
@@ -156,6 +159,10 @@ void Configuration::parseFile(std::string file_name)
   if(arnoldi_size_element != nullptr)
   {
     arnoldi_size_element->QueryIntText(&arnoldi_degree);
+  }
+  if(nb_eigen_element != nullptr)
+  {
+    nb_eigen_element->QueryIntText(&nb_eigen);
   }
   if(relative_error_element != nullptr)
   {
@@ -202,6 +209,8 @@ int Configuration::getMeasure_iter() const { return measure_iter; }
 int Configuration::getVerboseLevel() const { return verbose_level; }
 
 int Configuration::getArnlodiDegree() const { return arnoldi_degree; }
+
+int Configuration::getNb_eigen() const { return nb_eigen; }
 
 std::string Configuration::getBench_file_name() const { return data_file; }
 
@@ -268,6 +277,9 @@ void Configuration::printConfig()
             << std::endl;
   std::cout.width(24);
   std::cout << std::left << "Arnoldi degree : " << std::right << arnoldi_degree
+            << std::endl;
+  std::cout.width(24);
+  std::cout << std::left << "Nb eigen : " << std::right << nb_eigen
             << std::endl;
   std::cout.width(24);
   std::cout << std::left << "Maximum iterations : " << std::right << max_iter

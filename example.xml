@@ -7,12 +7,13 @@
   <verbose-level>2</verbose-level>
 
   <!--matrix-file>../mm/psmigr_3.mtx</matrix-file-->
-  <matrix-colums>100</matrix-colums>
-  <matrix-lines>100</matrix-lines>
+  <matrix-colums>1000</matrix-colums>
+  <matrix-lines>1000</matrix-lines>
 
-  <arnoldi-size>10</arnoldi-size>
-  
-  <relative-error>1e-8</relative-error>
+  <arnoldi-size>20</arnoldi-size>
+  <s>10</s>
+
+  <relative-error>1e-6</relative-error>
   <max-iter>200</max-iter>
   
   <benchmark>no</benchmark>

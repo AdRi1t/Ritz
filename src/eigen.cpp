@@ -17,6 +17,7 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
 
   int n = H.getNb_rows();
   int m = H.getNb_cols();
+  assert(n == m);
   int comm_size = 0;
   int comm_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
@@ -69,6 +70,7 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
     }
     if(i != comm_rank)
     {
+      std::cout << __LINE__ << std::endl;
       k = 0;
       for (unsigned int l = lower_id; l <= upper_id; l++)
       {
@@ -90,7 +92,7 @@ void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<
   {
     std::cerr << "[Lapack] QR algorithm failed to compute all the eigenvalues \n"; 
   }
-  
+
   // Transpose
   std::complex<double>* tmp_Vectors = new std::complex<double>[n*n];
   for (size_t i = 0; i < n; i++)
@@ -163,6 +165,74 @@ void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** ei
   {
     new_values[j] = (*eigenValue)[j];
   }
+  // XD
+  delete[] (*eigenValue);
+  delete[] (*eigenVectors);
+  (*eigenValue) = new_values;
+  (*eigenVectors) = new_vectors;
+  
+  delete[] index;
+  delete[] tmp_Vectors;
+}
+
+void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** eigenVectors, std::complex<double>** mu, int m, int s)
+{
+  assert(m >= s);
+  int* index = new int[m];
+  for (size_t i = 0; i < m; i++)
+  {
+    index[i] = i;
+  }
+  for (size_t i = 0; i < m; i++)
+  { 
+    for (size_t j = i; j < m; j++)
+    {
+      // i < j si v(i) < v(j)
+      if( std::abs((*eigenValue)[i]) < std::abs((*eigenValue)[j]) )
+      {
+        std::complex<double> tmp = (*eigenValue)[i];
+        (*eigenValue)[i] = (*eigenValue)[j];
+        (*eigenValue)[j] = tmp;
+        int tmp_pos = i;
+        index[i] = j;
+        index[j] = tmp_pos;
+      }
+    }
+  }
+  std::complex<double>* tmp_Vectors = new std::complex<double>[m*m];
+  for (size_t i = 0; i < m; i++)
+  { 
+    for (size_t j = 0; j < m; j++)
+    {
+      tmp_Vectors[i*m+j] = (*eigenVectors)[i*m+j];
+    }
+  }
+  for (size_t i = 0; i < m; i++)
+  { 
+    for (size_t j = 0; j < m; j++)
+    {
+      (*eigenVectors)[i*m+j] = tmp_Vectors[index[i]*m + j];
+    }
+  }
+  std::complex<double>* new_values = new std::complex<double>[s];
+  std::complex<double>* new_vectors = new std::complex<double>[m*s];
+  *mu = new std::complex<double>[m-s];
+  for (size_t i = 0; i < m; i++)
+  { 
+    for (size_t j = 0; j < s; j++)
+    {
+      new_vectors[i*s+j] = (*eigenVectors)[i*m+j];
+    }
+  }
+  for (size_t j = 0; j < s; j++)
+  {
+    new_values[j] = (*eigenValue)[j];
+  }
+  for (size_t i = 0; i < (m-s); i++)
+  {
+    (*mu)[i] = (*eigenValue)[s+i];
+  }
+  
   // XD
   delete[] (*eigenValue);
   delete[] (*eigenVectors);

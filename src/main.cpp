@@ -23,20 +23,21 @@ int main(int argc, char *argv[])
    config.printConfig();
   }
   MPI_Init(&argc, &argv);
-  unsigned int l,c,m;
+  unsigned int l,c,m,s;
   l = config.getNb_lines();
   c = config.getNb_cols();
   m = config.getArnlodiDegree();
-
+  s = config.getNb_eigen();
   ArnoldiInput input;
   ArnoldiOutput output;
   build_stats b_stats;
   std::complex<double>* eigenValues;
   std::complex<double>* eigenVectors;
   std::complex<double>* Us;
+  std::complex<double>* mu;
 
   Mtx resultA3 = Mtx(l,1);
-  Mtx residuals;
+  Mtx residuals = Mtx(m,1);
   resultA3.fillResultA9(10,20);
   //resultA3.printValue();
 
@@ -44,35 +45,45 @@ int main(int argc, char *argv[])
   input.v = Mtx(l,1);
   input.A.fillTestA3();
   input.v.fillConst(0.5);
-  input.m = 2*m;
-  input.s = m;
+  input.m = m;
+  input.s = s;
   input.n = l;
 
-  double t1,t2;
-  double* t = new double[config.getMax_iter()];
+  double t1,t2,t3,t4;
+  double t;
+  double* t_arnoldi = new double[config.getMax_iter()];
+  double* t_iter = new double[config.getMax_iter()];
   plf::nanotimer timer;
   timer.start();
   double rho = 1.0;
   int iter = 0;
+  //input.A.printValue();
   while( rho > config.getRelative_error() && iter < config.getMax_iter())
   {
-
+  
     t1 = timer.get_elapsed_ms();
     reductionArnoldi(input, &output);
-    computeEigen(output.H, &eigenValues, &eigenVectors); 
-    sortEigenValue(&eigenValues,&eigenVectors, input.m, input.s);
+    computeEigen(output.H, &eigenValues, &eigenVectors);
+    sortEigenValue(&eigenValues,&eigenVectors, &mu, input.m, input.s);
+    Vm_QR(output.H ,mu, m-s);
     computeUs(&eigenVectors, output.V, &Us, input.s);
     residuals = computeResiduals2(output.h, &eigenVectors, input.m, input.s);
     rho = summVect(residuals);
     t2 = timer.get_elapsed_ms();
-    t[iter] = (t2 - t1);
+    t_iter[iter] = (t2 - t1);
     std::cout << "Iter : " << iter + 1  << "\n";
     std::cout << "Error : " << rho << "\n";
     input.v = newV(&Us, input.n, input.s);
-    iter += 1;
+    iter += 1;  
+    
   }
-  
-  b_stats.add_data("Iteration", "ms",t,input.m, iter); 
+  //std::cout << "Us : " << "\n";
+  //printEigenVectors(Us,input.n,input.s);
+  //std::cout << "values : " <<"\n";
+  //printEigenValue(eigenValues,input.s);
+
+  //b_stats.add_data("Arnoldi", "ms",t_arnoldi,input.m, iter); 
+  b_stats.add_data("Iteration", "ms",t_iter,input.m, iter); 
   b_stats.writeAll(config.getBench_file_name());
 
   delete[] eigenValues;
@@ -158,3 +169,27 @@ int main(int argc, char *argv[])
     plf::millisecond_delay(200);
 
     */
+
+
+   // ERAM
+
+   /*
+    t1 = timer.get_elapsed_ms();
+    reductionArnoldi(input, &output);
+    computeEigen(output.H, &eigenValues, &eigenVectors);
+    sortEigenValue(&eigenValues,&eigenVectors, &mu, input.m, input.s);
+
+    std::cout << "Eigen \n";
+    printEigenValue(mu, m-s);
+    std::cout << "\n";
+
+    computeUs(&eigenVectors, output.V, &Us, input.s);
+    residuals = computeResiduals2(output.h, &eigenVectors, input.m, input.s);
+    rho = summVect(residuals);
+    t2 = timer.get_elapsed_ms();
+    t_iter[iter] = (t2 - t1);
+    std::cout << "Iter : " << iter + 1  << "\n";
+    std::cout << "Error : " << rho << "\n";
+    input.v = newV(&Us, input.n, input.s);
+    iter += 1;  
+   */

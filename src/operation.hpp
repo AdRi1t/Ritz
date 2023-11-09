@@ -31,6 +31,7 @@ void reductionArnoldi(const ArnoldiInput& input, ArnoldiOutput *out);
 void computeEigen(const Mtx& H, std::complex<double>** eigenValue, std::complex<double>** eigenVectors);
 
 void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** eigenVectors, int n, int s);
+void sortEigenValue(std::complex<double>** eigenValue, std::complex<double>** eigenVectors, std::complex<double>** mu, int n, int s);
 
 void printEigenValue(const std::complex<double> *eigenValues, int n);
 
@@ -46,3 +47,7 @@ Mtx computeResiduals2(double hm1, std::complex<double> **eigenVectors, int m, in
 double summVect(const Mtx& vect);
 
 Mtx newV(std::complex<double> **EigenVectors, int n, int s);
+
+void Vm_QR(Mtx& H_m, std::complex<double>* mu, int p);
+
+

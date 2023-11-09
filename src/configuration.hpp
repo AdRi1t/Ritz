@@ -11,6 +11,7 @@
 #define TAG_NB_LINES "matrix-lines"
 #define TAG_RELATIVE_ERROR "relative-error"
 #define TAG_ARNOLDI_SIZE "arnoldi-size"
+#define TAG_NB_EIGEN "s"
 #define TAG_MATRIX_FILE "matrix-file"
 #define TAG_BENCHMARK "benchmark"
 #define TAG_MEASURE_ITER "measure-iter"
@@ -28,6 +29,7 @@ private:
   int max_iter;
   int measure_iter;
   int arnoldi_degree;
+  int nb_eigen;
   double relative_error;
   std::string matrix_file_name;
   std::string title;
@@ -50,6 +52,7 @@ public:
   int getMeasure_iter() const;
   int getVerboseLevel() const;
   int getArnlodiDegree() const;
+  int getNb_eigen() const;
   std::string getBench_file_name() const;
   std::string getMatrix_file_name() const;
 };

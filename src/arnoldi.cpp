@@ -221,3 +221,32 @@ Mtx newV(std::complex<double> **EigenVectors, int n, int s)
   return v;
 }
 
+void Vm_QR(Mtx& H_m, std::complex<double>* mu, int p)
+{
+  // A = Q*R
+  int n = H_m.getNb_rows();
+  int m = H_m.getNb_cols();
+  assert(n==m);
+  std::complex<double>* A = new std::complex<double>[n*m];
+  std::complex<double>* Q = new std::complex<double>[n*m];
+  std::complex<double>* tau = new std::complex<double>[m];
+  for (int i = 0; i < n; i++)
+  {
+    for(int j = 0; j < m; j++)
+    {
+      Q[i*m+j] = 0.0;
+      A[i*m+j].real(H_m(i,j));
+    }
+  }
+  for (size_t j = 0; j < p; j++)
+  {
+    for(size_t k = 0; k < m; k++)
+    {
+      Q[k*m+k] = 1;
+      A[k*m+k] = A[k*m+k] - mu[j];
+    }
+    lapack::unmqr(lapack::Side::Right, lapack::Op::NoTrans,n,m,n,A,n,tau,Q,m);
+  }
+  printEigenVectors(Q,m);
+}
+

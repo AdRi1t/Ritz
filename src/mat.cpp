@@ -308,6 +308,11 @@ Mtx& Mtx::operator=(Mtx mtx)
 {
   int comm_size = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  if(this->alloc_size > 0)
+  {
+    delete[] this->data;
+    delete[] this->upper_id_rank;
+  }
   this->alloc_size = mtx.alloc_size;
   this->data = new double[this->alloc_size]();
   this->upper_id_rank = new unsigned int[comm_size]();

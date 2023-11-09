@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20.0)
 project(ritz)
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
-set(flag -Wall -g3 -O0 -march=native -mtune=native -ftree-vectorize -funroll-loops)
+set(flag -Wall -g -O2 -march=native -mtune=native -ftree-vectorize -funroll-loops)
 
 set(SRCS
     lib/mmio/mmio.c
